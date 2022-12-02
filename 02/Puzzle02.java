@@ -33,7 +33,8 @@ class StrategyListReader {
                 String[] tokens = line.split(" ");
 
                 Move opponent = Move.parse(tokens[0]);
-                Move you = Move.parse(tokens[1]);
+                Result result = Result.parse(tokens[1]);
+                Move you = Match.calculateMove(opponent, result);
                 Match match = new Match(opponent, you);
 
                 strategyList.addMatch(match);
@@ -105,6 +106,31 @@ class Match {
     public Move getB() {
         return b;
     }
+
+    public static Move calculateMove(Move opponent, Result result) {
+        switch (result) {
+            case LOSE:
+                switch (opponent) {
+                    case ROCK:
+                        return Move.SCISSORS;
+                    case PAPER:
+                        return Move.ROCK;
+                    default:
+                        return Move.PAPER;
+                }
+            case WIN:
+                switch (opponent) {
+                    case ROCK:
+                        return Move.PAPER;
+                    case PAPER:
+                        return Move.SCISSORS;
+                    default:
+                        return Move.ROCK;
+                }
+            default:
+                return opponent;
+        }
+    }
 }
 
 enum Result {
@@ -118,6 +144,19 @@ enum Result {
 
     public int getValue() {
         return value;
+    }
+
+    public static Result parse(String s) {
+        switch (s) {
+            case "X":
+                return LOSE;
+            case "Y":
+                return DRAW;
+            case "Z":
+                return WIN;
+            default:
+                return DRAW;
+        }
     }
 }
 
@@ -137,16 +176,13 @@ enum Move {
     public static Move parse(String s) {
         switch (s) {
             case "A":
-            case "X":
-                return Move.ROCK;
+                return ROCK;
             case "B":
-            case "Y":
-                return Move.PAPER;
+                return PAPER;
             case "C":
-            case "Z":
-                return Move.SCISSORS;
+                return SCISSORS;
             default:
-                return Move.ROCK;
+                return ROCK;
         }
     }
 }
