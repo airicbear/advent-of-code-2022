@@ -104,8 +104,11 @@ class IdRange {
     }
 
     private static boolean compare(IdRange r1, IdRange r2) {
-        return r1.initialNumber.getValue() <= r2.initialNumber.getValue()
-                && r1.finalNumber.getValue() >= r2.finalNumber.getValue();
+        boolean initContained = (r1.initialNumber.getValue() >= r2.initialNumber.getValue()
+                && r1.initialNumber.getValue() <= r2.finalNumber.getValue());
+        boolean finalContained = (r1.finalNumber.getValue() >= r2.initialNumber.getValue()
+                && r1.finalNumber.getValue() <= r2.finalNumber.getValue());
+        return initContained || finalContained;
     }
 
     public static IdRange from(String string) {
