@@ -57,7 +57,7 @@ class CrateProcedure {
             crateProcedure.instructions = Instructions.from(s);
 
             for (Instruction instruction : crateProcedure.instructions.getList()) {
-                crateProcedure.crates.runInstruction(instruction);
+                crateProcedure.crates.runInstruction9001(instruction);
             }
 
             s.close();
@@ -72,9 +72,19 @@ class CrateProcedure {
 class Crates {
     private Map<Integer, Deque<Crate>> map;
 
-    public void runInstruction(Instruction instruction) {
+    public void runInstruction9000(Instruction instruction) {
         for (int i = 0; i < instruction.getAmount(); i++) {
             push(instruction.getTo(), pop(instruction.getFrom()));
+        }
+    }
+
+    public void runInstruction9001(Instruction instruction) {
+        Deque<Crate> buffer = new ArrayDeque<>();
+        for (int i = 0; i < instruction.getAmount(); i++) {
+            buffer.push(pop(instruction.getFrom()));
+        }
+        for (int i = 0; i < instruction.getAmount(); i++) {
+            push(instruction.getTo(), buffer.pop());
         }
     }
 
