@@ -3,62 +3,98 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayDeque;
 import java.util.Deque;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class Puzzle06 {
     public static void main(String[] args) {
         if (args.length > 0) {
-            SignalReader signalReader = SignalReader.from(args[0]);
-            System.out.println(signalReader.getCountUntilFirstPacket());
+            System.out.println(PacketProcessor.findFirstPacket(args[0]));
+            System.out.println(MessageProcessor.findFirstMessage(args[0]));
         } else {
             System.err.println("ERROR: Filename not provided.\nUSAGE: java Puzzle06 [filename].");
         }
     }
 }
 
-class SignalReader {
-    private int countUntilFirstPacket;
+class MessageProcessor {
+    private static final int SIZE_MESSAGE_MARKER = 14;
 
-    public int getCountUntilFirstPacket() {
-        return countUntilFirstPacket;
-    }
+    public static int findFirstMessage(String filename) {
+        try (BufferedReader reader = new BufferedReader(new FileReader(filename))) {
+            Deque<Character> buffer = new ArrayDeque<>();
 
-    public static SignalReader from(String filename) {
-        SignalReader signalReader = new SignalReader();
-        try {
-            BufferedReader reader = new BufferedReader(new FileReader(filename));
-            signalReader.countUntilFirstPacket = signalReader.processUntilFirstPacket(reader);
+            int count = 1;
+            int value;
+            while ((value = reader.read()) != -1) {
+                if (ProcessorUtils.validBufferSize(SIZE_MESSAGE_MARKER, buffer)) {
+                    if (ProcessorUtils.validPacketMarker(buffer, (char) value)) {
+                        return count;
+                    }
+                    buffer.removeFirst();
+                }
+                buffer.addLast((char) value);
+                count++;
+            }
+
+            reader.close();
+
+            return count;
         } catch (IOException e) {
             System.err.println("ERROR: File \"" + filename + "\" not found.");
+            return -1;
         }
-        return signalReader;
+    }
+}
+
+class PacketProcessor {
+    private static final int SIZE_PACKET_MARKER = 4;
+
+    public static int findFirstPacket(String filename) {
+        try (BufferedReader reader = new BufferedReader(new FileReader(filename))) {
+            Deque<Character> buffer = new ArrayDeque<>();
+
+            int count = 1;
+            int value;
+            while ((value = reader.read()) != -1) {
+                if (ProcessorUtils.validBufferSize(SIZE_PACKET_MARKER, buffer)) {
+                    if (ProcessorUtils.validPacketMarker(buffer, (char) value)) {
+                        return count;
+                    }
+                    buffer.removeFirst();
+                }
+                buffer.addLast((char) value);
+                count++;
+            }
+
+            reader.close();
+
+            return count;
+        } catch (IOException e) {
+            System.err.println("ERROR: File \"" + filename + "\" not found.");
+            return -1;
+        }
+    }
+}
+
+class ProcessorUtils {
+    public static boolean validBufferSize(int markerSize, Deque<Character> buffer) {
+        return buffer.size() % (markerSize - 1) == 0 && !buffer.isEmpty();
     }
 
-    private int processUntilFirstPacket(BufferedReader reader) throws IOException {
-        Deque<Character> buffer = new ArrayDeque<>();
-
-        int count = 0;
-        char value;
-        while ((value = (char) reader.read()) != -1) {
-            if (buffer.size() % 3 == 0 && !buffer.isEmpty()) {
-                if (!hasDuplicate(buffer) && !buffer.contains(value)) {
-                    return count + 1;
-                }
-                buffer.removeFirst();
-            }
-            buffer.addLast(value);
-            count++;
-        }
-
-        reader.close();
-
-        return count;
+    public static boolean validPacketMarker(Deque<Character> buffer, char value) {
+        return !hasDuplicate(buffer) && !buffer.contains((char) value);
     }
 
     private static boolean hasDuplicate(Deque<Character> buffer) {
-        Deque<Character> copy = new ArrayDeque<>(buffer);
-        char c1 = copy.removeFirst();
-        char c2 = copy.peekFirst();
-        char c3 = copy.peekLast();
-        return c1 == c2 || c1 == c3 || c2 == c3;
+        List<Character> list = buffer.stream().collect(Collectors.toList());
+        for (int i = 0; i < list.size(); i++) {
+            for (int j = i + 1; j < list.size(); j++) {
+                if (list.get(i) == list.get(j)) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 }
