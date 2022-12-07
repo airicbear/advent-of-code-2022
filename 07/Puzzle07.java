@@ -12,6 +12,7 @@ public class Puzzle07 {
         if (args.length > 0) {
             CommandLine commandLine = CommandLine.from(args[0]);
             System.out.println(commandLine.getSumDirectorySizes(100000));
+            System.out.println(commandLine.findSmallestDirectoryToBeDeleted().getSize());
         } else {
             System.err.println("ERROR: Filename not provided.\nUSAGE: java Puzzle07 [filename].");
         }
@@ -21,6 +22,41 @@ public class Puzzle07 {
 class CommandLine {
     private Directory rootDirectory;
     private Deque<Directory> workingDirectory;
+
+    private static final int TOTAL_DISK_SPACE = 70000000;
+    private static final int REQUIRED_FREE_SPACE = 30000000;
+
+    public Directory getRootDirectory() {
+        return rootDirectory;
+    }
+
+    public int getAvailableSpace() {
+        return TOTAL_DISK_SPACE - rootDirectory.getSize();
+    }
+
+    public Directory findSmallestDirectoryToBeDeleted() {
+        Deque<Directory> dirs = new ArrayDeque<>();
+        dirs.add(rootDirectory);
+
+        int minspace = rootDirectory.getSize();
+        Directory target = rootDirectory;
+
+        while (!dirs.isEmpty()) {
+            Directory dir = dirs.pop();
+            Iterator<Directory> iter = dir.getSubdirectories().iterator();
+            while (iter.hasNext()) {
+                Directory next = iter.next();
+                int space = getAvailableSpace() + next.getSize();
+                if (space < minspace && space >= REQUIRED_FREE_SPACE) {
+                    target = next;
+                    minspace = space;
+                }
+                dirs.add(next);
+            }
+        }
+
+        return target;
+    }
 
     public int getSumDirectorySizes(int max) {
         Deque<Directory> dirs = new ArrayDeque<>();
