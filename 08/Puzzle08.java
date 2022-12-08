@@ -9,6 +9,7 @@ public class Puzzle08 {
         if (args.length > 0) {
             Trees trees = Trees.from(args[0]);
             System.out.println(trees.getVisibleTrees().size());
+            System.out.println(trees.maxScenicScore());
         } else {
             System.err.println("ERROR: Filename not provided.\nUSAGE: java Puzzle08 [filename].");
         }
@@ -140,6 +141,83 @@ class Trees {
             }
         }
         return true;
+    }
+
+    public int maxScenicScore() {
+        int maxScenicScore = 0;
+        for (int i = 0; i < trees.size(); i++) {
+            for (int j = 0; j < trees.get(i).size(); j++) {
+                Tree tree = trees.get(i).get(j);
+                int scenicScore = scenicScore(tree);
+                if (scenicScore > maxScenicScore) {
+                    maxScenicScore = scenicScore;
+                }
+            }
+        }
+        return maxScenicScore;
+    }
+
+    private int scenicScore(Tree tree) {
+        return viewingDistanceUp(tree)
+                * viewingDistanceDown(tree)
+                * viewingDistanceLeft(tree)
+                * viewingDistanceRight(tree);
+    }
+
+    private int viewingDistanceUp(Tree tree) {
+        List<Tree> column = getColumn(tree.getXPos());
+        int dist = 0;
+
+        for (int i = tree.getYPos() - 1; i >= 0; i--) {
+            dist++;
+            if (column.get(i).getHeight() >= tree.getHeight()) {
+                break;
+            }
+        }
+
+        return dist;
+    }
+
+    private int viewingDistanceDown(Tree tree) {
+        List<Tree> column = getColumn(tree.getXPos());
+        int dist = 0;
+
+        for (int i = tree.getYPos() + 1; i < trees.size(); i++) {
+            dist++;
+            if (column.get(i).getHeight() >= tree.getHeight()) {
+                break;
+            }
+        }
+
+        return dist;
+    }
+
+    private int viewingDistanceLeft(Tree tree) {
+        List<Tree> row = getRow(tree.getYPos());
+        int dist = 0;
+
+        for (int i = tree.getXPos() - 1; i >= 0; i--) {
+            dist++;
+            if (row.get(i).getHeight() >= tree.getHeight()) {
+                break;
+            }
+        }
+
+        return dist;
+    }
+
+    private int viewingDistanceRight(Tree tree) {
+        List<Tree> row = getRow(tree.getYPos());
+        int dist = 0;
+
+        for (int i = tree.getXPos() + 1; i < trees.get(0).size(); i++) {
+            dist++;
+            if (row.get(i).getHeight() >= tree.getHeight()) {
+                break;
+            }
+        }
+
+        return dist;
     }
 
     private static List<Tree> parseTreeRow(String line, int row) {
