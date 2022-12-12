@@ -5,27 +5,33 @@ string[] puzzleInput = Resources.puzzle_input.Split('\n');
 CPU cpu = new();
 cpu.Run(testInput);
 cpu.Run(puzzleInput);
+CRT crt = new();
+crt.Run(testInput);
+crt.Run(puzzleInput);
 
 class CPU
 {
-    private int X { get; set; } = 1;
-    private int cycle { get; set; } = 0;
-    private int signalStrength { get; set; } = 0;
+    private int X = 1;
+    private int cycle = 0;
+    private int signalStrength = 0;
 
     private int Signal()
     {
         return X * cycle;
     }
 
+    private void UpdateSignal()
+    {
+        if ((cycle - 20) % 40 == 0)
+        {
+            signalStrength += Signal();
+        }
+    }
+
     private void Update()
     {
         cycle++;
-
-        if ((cycle - 20) % 40 == 0)
-        {
-            Console.WriteLine(cycle);
-            signalStrength += Signal();
-        }
+        UpdateSignal();
     }
 
     private void Reset()
@@ -35,25 +41,113 @@ class CPU
         signalStrength = 0;
     }
 
+    private void Noop()
+    {
+        Update();
+    }
+
+    private void Addx(int V)
+    {
+        Update();
+        Update();
+        X += V;
+    }
+
     public void Run(string[] input)
     {
         Reset();
         for (int i = 0; i < input.Length; i++)
         {
-            string[] tokens = input[i].Split(' ');
+            string line = input[i];
+            string[] tokens = line.Split(' ');
+            string instruction = tokens[0].Trim();
 
-            if (tokens[0].Trim().Equals("noop"))
+            if (instruction.Equals("noop"))
             {
-                Update();
+                Noop();
             }
-            else if (tokens[0].Trim().Equals("addx"))
+            else if (instruction.Equals("addx"))
             {
-                Update();
-                Update();
-                X += int.Parse(tokens[1]);
+                int V = int.Parse(tokens[1]);
+
+                Addx(V);
             }
         }
 
         Console.WriteLine(signalStrength);
+    }
+}
+
+
+class CRT
+{
+    private int X = 1;
+    private int cycle = 0;
+    private const int screenWidth = 40;
+    private const char pixelLit = '#';
+    private const char pixelDark = '.';
+
+    private bool ShouldDraw()
+    {
+        return Math.Abs(cycle % 40 - X) <= 1;
+    }
+
+    private void Update()
+    {
+        if (ShouldDraw())
+        {
+            Console.Write(pixelLit);
+        }
+        else
+        {
+            Console.Write(pixelDark);
+        }
+
+        cycle++;
+
+        if (cycle > 0 && cycle % screenWidth == 0)
+        {
+            Console.WriteLine();
+        }
+    }
+
+    private void Reset()
+    {
+        X = 1;
+        cycle = 0;
+    }
+
+    private void Noop()
+    {
+        Update();
+    }
+
+    private void Addx(int V)
+    {
+        Update();
+        Update();
+        X += V;
+    }
+
+    public void Run(string[] input)
+    {
+        Reset();
+        for (int i = 0; i < input.Length; i++)
+        {
+            string line = input[i];
+            string[] tokens = line.Split(' ');
+            string instruction = tokens[0].Trim();
+
+            if (instruction.Equals("noop"))
+            {
+                Noop();
+            }
+            else if (instruction.Equals("addx"))
+            {
+                int V = int.Parse(tokens[1]);
+
+                Addx(V);
+            }
+        }
     }
 }
