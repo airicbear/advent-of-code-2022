@@ -1,1 +1,4 @@
 *.class
+.vs
+bin
+obj
